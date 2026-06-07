@@ -8,8 +8,6 @@
 #include <limits>
 #include <math.h>
 
-LUAU_FASTFLAGVARIABLE(LuauCompileNewMathConstantsFolded)
-
 namespace Luau
 {
 namespace Compile
@@ -85,6 +83,9 @@ static Constant ctype(const Constant& c)
     case Constant::Type_Number:
         return cstring("number");
 
+    case Constant::Type_Integer:
+        return cstring("integer");
+
     case Constant::Type_Vector:
         return cstring("vector");
 
@@ -111,6 +112,9 @@ static Constant ctypeof(const Constant& c)
 
     case Constant::Type_Number:
         return cstring("number");
+
+    case Constant::Type_Integer:
+        return cstring("integer");
 
     case Constant::Type_Vector:
         return cvar(); // vector can have a custom typeof name at runtime
@@ -642,23 +646,20 @@ Constant foldBuiltinMath(AstName index)
     if (index == "huge")
         return cnum(HUGE_VAL);
 
-    if (FFlag::LuauCompileNewMathConstantsFolded)
-    {
-        if (index == "nan")
-            return cnum(kNan);
+    if (index == "nan")
+        return cnum(kNan);
 
-        if (index == "e")
-            return cnum(kE);
+    if (index == "e")
+        return cnum(kE);
 
-        if (index == "phi")
-            return cnum(kPhi);
+    if (index == "phi")
+        return cnum(kPhi);
 
-        if (index == "sqrt2")
-            return cnum(kSqrt2);
+    if (index == "sqrt2")
+        return cnum(kSqrt2);
 
-        if (index == "tau")
-            return cnum(kTau);
-    }
+    if (index == "tau")
+        return cnum(kTau);
 
     return cvar();
 }

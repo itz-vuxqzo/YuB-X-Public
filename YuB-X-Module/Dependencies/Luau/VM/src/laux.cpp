@@ -11,8 +11,6 @@
 
 #include <string.h>
 
-LUAU_FASTFLAG(LuauStacklessPcall)
-
 // convert a stack index to positive
 #define abs_index(L, i) ((i) > 0 || (i) <= LUA_REGISTRYINDEX ? (i) : lua_gettop(L) + (i) + 1)
 
@@ -223,9 +221,21 @@ int luaL_checkinteger(lua_State* L, int narg)
     return d;
 }
 
+int64_t luaL_checkinteger64(lua_State* L, int narg)
+{
+    if (!lua_isinteger64(L, narg))
+        tag_error(L, narg, LUA_TINTEGER);
+    return lua_tointeger64(L, narg, nullptr);
+}
+
 int luaL_optinteger(lua_State* L, int narg, int def)
 {
     return luaL_opt(L, luaL_checkinteger, narg, def);
+}
+
+int64_t luaL_optinteger64(lua_State* L, int narg, int64_t def)
+{
+    return luaL_opt(L, luaL_checkinteger64, narg, def);
 }
 
 unsigned luaL_checkunsigned(lua_State* L, int narg)
@@ -361,17 +371,9 @@ int luaL_callyieldable(lua_State* L, int nargs, int nresults)
 
     lua_call(L, nargs, nresults);
 
-    if (FFlag::LuauStacklessPcall)
-    {
-        // yielding means we need to propagate yield; resume will call continuation function later
-        if (isyielded(L))
-            return C_CALL_YIELD;
-    }
-    else
-    {
-        if (L->status == LUA_YIELD || L->status == LUA_BREAK)
-            return -1; // -1 is a marker for yielding from C
-    }
+    // yielding means we need to propagate yield; resume will call continuation function later
+    if (isyielded(L))
+        return C_CALL_YIELD;
 
     return cl->c.cont(L, LUA_OK);
 }
@@ -559,6 +561,14 @@ void luaL_addvalueany(luaL_Strbuf* B, int idx)
         luaL_addlstring(B, s, len);
         break;
     }
+    case LUA_TINTEGER:
+    {
+        int64_t n = lua_tointeger64(L, idx, nullptr);
+        char s[LUAI_MAXINT2STR];
+        char* e = luai_int2str(s, n);
+        luaL_addlstring(B, s, e - s);
+        break;
+    }
     default:
     {
         size_t len;
@@ -650,6 +660,14 @@ const char* luaL_tolstring(lua_State* L, int idx, size_t* len)
     case LUA_TSTRING:
         lua_pushvalue(L, idx);
         break;
+    case LUA_TINTEGER:
+    {
+        int64_t l = lua_tointeger64(L, idx, nullptr);
+        char s[LUAI_MAXINT2STR];
+        char* e = luai_int2str(s, l);
+        lua_pushlstring(L, s, e - s);
+        break;
+    }
     default:
     {
         const void* ptr = lua_topointer(L, idx);

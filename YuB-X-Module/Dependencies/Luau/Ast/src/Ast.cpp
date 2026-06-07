@@ -4,8 +4,6 @@
 #include "Luau/Common.h"
 
 
-LUAU_FASTFLAG(LuauExplicitTypeInstantiationSyntax)
-
 namespace Luau
 {
 
@@ -36,8 +34,6 @@ static void visitTypeList(AstVisitor* visitor, const AstTypeList& list)
 
 static void visitTypeOrPackArray(AstVisitor* visitor, const AstArray<AstTypeOrPack>& arrayOfTypeOrPack)
 {
-    LUAU_ASSERT(FFlag::LuauExplicitTypeInstantiationSyntax);
-
     for (const AstTypeOrPack& param : arrayOfTypeOrPack)
     {
         if (param.type)
@@ -175,6 +171,18 @@ void AstExprConstantNumber::visit(AstVisitor* visitor)
     visitor->visit(this);
 }
 
+AstExprConstantInteger::AstExprConstantInteger(const Location& location, int64_t value, ConstantNumberParseResult parseResult)
+    : AstExpr(ClassIndex(), location)
+    , value(value)
+    , parseResult(parseResult)
+{
+}
+
+void AstExprConstantInteger::visit(AstVisitor* visitor)
+{
+    visitor->visit(this);
+}
+
 AstExprConstantString::AstExprConstantString(const Location& location, const AstArray<char>& value, QuoteStyle quoteStyle)
     : AstExpr(ClassIndex(), location)
     , value(value)
@@ -240,7 +248,6 @@ AstExprCall::AstExprCall(
     , self(self)
     , argLocation(argLocation)
 {
-    LUAU_ASSERT(FFlag::LuauExplicitTypeInstantiationSyntax || explicitTypes.size == 0);
 }
 
 void AstExprCall::visit(AstVisitor* visitor)
@@ -551,13 +558,10 @@ AstExprInstantiate::AstExprInstantiate(const Location& location, AstExpr* expr, 
     , expr(expr)
     , typeArguments(types)
 {
-    LUAU_ASSERT(FFlag::LuauExplicitTypeInstantiationSyntax);
 }
 
 void AstExprInstantiate::visit(AstVisitor* visitor)
 {
-    LUAU_ASSERT(FFlag::LuauExplicitTypeInstantiationSyntax);
-
     if (visitor->visit(this))
     {
         expr->visit(visitor);
@@ -706,11 +710,13 @@ AstStatLocal::AstStatLocal(
     const Location& location,
     const AstArray<AstLocal*>& vars,
     const AstArray<AstExpr*>& values,
-    const std::optional<Location>& equalsSignLocation
+    const std::optional<Location>& equalsSignLocation,
+    bool isConst
 )
     : AstStat(ClassIndex(), location)
     , vars(vars)
     , values(values)
+    , isConst(isConst)
     , equalsSignLocation(equalsSignLocation)
 {
 }
@@ -858,10 +864,11 @@ void AstStatFunction::visit(AstVisitor* visitor)
     }
 }
 
-AstStatLocalFunction::AstStatLocalFunction(const Location& location, AstLocal* name, AstExprFunction* func)
+AstStatLocalFunction::AstStatLocalFunction(const Location& location, AstLocal* name, AstExprFunction* func, bool isConst)
     : AstStat(ClassIndex(), location)
     , name(name)
     , func(func)
+    , isConst(isConst)
 {
 }
 
@@ -969,6 +976,40 @@ AstStatDeclareFunction::AstStatDeclareFunction(
     , varargLocation(varargLocation)
     , retTypes(retTypes)
 {
+}
+
+AstStatClass::AstStatClass(const Location& location, AstLocal* name, AstArray<AstClassMember> members, bool exported)
+    : AstStat(ClassIndex(), location)
+    , name(name)
+    , members(members)
+    , exported(exported)
+{
+    LUAU_ASSERT(FFlag::DebugLuauUserDefinedClasses);
+}
+
+void AstStatClass::visit(AstVisitor* visitor)
+{
+    LUAU_ASSERT(FFlag::DebugLuauUserDefinedClasses);
+    if (visitor->visit(this))
+    {
+        for (const auto& member : members)
+        {
+            Luau::visit(
+                overloaded{
+                    [&](const AstClassProperty& prop)
+                    {
+                        if (prop.ty)
+                            prop.ty->visit(visitor);
+                    },
+                    [&](const AstClassMethod& method)
+                    {
+                        method.function->visit(visitor);
+                    }
+                },
+                member
+            );
+        }
+    }
 }
 
 AstStatDeclareFunction::AstStatDeclareFunction(
@@ -1100,20 +1141,7 @@ void AstTypeReference::visit(AstVisitor* visitor)
 {
     if (visitor->visit(this))
     {
-        if (FFlag::LuauExplicitTypeInstantiationSyntax)
-        {
-            visitTypeOrPackArray(visitor, parameters);
-        }
-        else
-        {
-            for (const AstTypeOrPack& param : parameters)
-            {
-                if (param.type)
-                    param.type->visit(visitor);
-                else
-                    param.typePack->visit(visitor);
-            }
-        }
+        visitTypeOrPackArray(visitor, parameters);
     }
 }
 

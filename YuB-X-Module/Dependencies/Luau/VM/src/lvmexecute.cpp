@@ -1,5 +1,6 @@
 // This file is part of the Luau programming language and is licensed under MIT License; see LICENSE.txt for details
 // This code is based on Lua 5.x implementation licensed under MIT License; see lua_LICENSE.txt for details
+#include "lclass.h"
 #include "lvm.h"
 
 #include "lstate.h"
@@ -15,6 +16,12 @@
 #include "lbytecode.h"
 
 #include <string.h>
+
+LUAU_FASTFLAGVARIABLE(LuauDirectFieldGet)
+LUAU_FASTFLAGVARIABLE(LuauClosureUsageCounter)
+LUAU_FASTFLAGVARIABLE(DebugLuauUserDefinedClassesRuntime)
+LUAU_FASTFLAGVARIABLE(LuauCallFeedback)
+LUAU_FASTFLAGVARIABLE(LuauYieldIter2)
 
 // Disable c99-designator to avoid the warning in computed goto dispatch table
 #ifdef __clang__
@@ -63,8 +70,11 @@
 #define VM_KV(i) (LUAU_ASSERT(unsigned(i) < unsigned(cl->l.p->sizek)), &k[i])
 #define VM_UV(i) (LUAU_ASSERT(unsigned(i) < unsigned(cl->nupvalues)), &cl->l.uprefs[i])
 
+#define VM_PATCH_OP(pc, op) *const_cast<Instruction*>(pc) = (uint8_t(op) | (0xffffff00u & *(pc)))
 #define VM_PATCH_C(pc, slot) *const_cast<Instruction*>(pc) = ((uint8_t(slot) << 24) | (0x00ffffffu & *(pc)))
 #define VM_PATCH_E(pc, slot) *const_cast<Instruction*>(pc) = ((uint32_t(slot) << 8) | (0x000000ffu & *(pc)))
+#define VM_PATCH_AUX(pc, slot) *const_cast<Instruction*>(pc) = uint32_t(slot)
+#define VM_PATCH_AUX_SLOT(pc, k, slot) *const_cast<Instruction*>(pc) = ((k) | (uint32_t(slot) << 16))
 
 #define VM_INTERRUPT() \
     { \
@@ -102,7 +112,8 @@
         VM_DISPATCH_OP(LOP_CAPTURE), VM_DISPATCH_OP(LOP_SUBRK), VM_DISPATCH_OP(LOP_DIVRK), VM_DISPATCH_OP(LOP_FASTCALL1), \
         VM_DISPATCH_OP(LOP_FASTCALL2), VM_DISPATCH_OP(LOP_FASTCALL2K), VM_DISPATCH_OP(LOP_FORGPREP), VM_DISPATCH_OP(LOP_JUMPXEQKNIL), \
         VM_DISPATCH_OP(LOP_JUMPXEQKB), VM_DISPATCH_OP(LOP_JUMPXEQKN), VM_DISPATCH_OP(LOP_JUMPXEQKS), VM_DISPATCH_OP(LOP_IDIV), \
-        VM_DISPATCH_OP(LOP_IDIVK),
+        VM_DISPATCH_OP(LOP_IDIVK), VM_DISPATCH_OP(LOP_GETUDATAKS), VM_DISPATCH_OP(LOP_SETUDATAKS), VM_DISPATCH_OP(LOP_NAMECALLUDATA), \
+        VM_DISPATCH_OP(LOP_NEWCLASSMEMBER), VM_DISPATCH_OP(LOP_CALLFB), VM_DISPATCH_OP(LOP_CMPPROTO),
 
 #if defined(__GNUC__) || defined(__clang__)
 #define VM_USE_CGOTO 1
@@ -192,9 +203,64 @@ inline bool luau_skipstep(uint8_t op)
     return op == LOP_PREPVARARGS || op == LOP_BREAK;
 }
 
+static LUAU_NOINLINE void luau_setupcci(lua_State* L, int nresults, StkId fun)
+{
+    CallInfo* ci = incr_ci(L);
+
+    ci->func = fun;
+    ci->base = fun + 1;
+    ci->top = L->top + LUA_MINSTACK;
+    ci->savedpc = NULL;
+    ci->flags = 0;
+    ci->nresults = nresults;
+
+    if (FFlag::LuauClosureUsageCounter)
+        clvalue(fun)->usage++;
+
+    L->base = fun + 1;
+
+    luaD_checkstackfornewci(L, LUA_MINSTACK);
+
+    LUAU_ASSERT(ci->top <= L->stack_last);
+    LUAU_ASSERT(ttisfunction(ci->func));
+}
+
 void luau_execute(lua_State* L)
 {
     Roblox::Luau_Execute(L);
+}
+
+void luau_finishop(lua_State* L)
+{
+    CallInfo* ci = L->ci;
+    ci->flags &= ~LUA_CALLINFO_OPYIELD;
+
+    Closure* cl = clvalue(L->ci->func);
+    StkId base = L->base;
+
+    const Instruction* pc = ci->savedpc;
+    Instruction insn = *(pc - 1); // the interrupted instruction
+
+    switch (LUAU_INSN_OP(insn))
+    {
+    case LOP_FORGLOOP:
+    {
+        StkId ra = VM_REG(LUAU_INSN_A(insn));
+
+        // copy first variable back into the iteration index
+        setobj2s(L, ra + 2, ra + 3);
+
+        // note that we need to increment pc by 1 to exit the loop since we need to skip over aux
+        pc += ttisnil(ra + 3) ? 1 : LUAU_INSN_D(insn);
+        LUAU_ASSERT(unsigned(pc - cl->l.p->code) < unsigned(cl->l.p->sizecode));
+        break;
+    }
+    default:
+        LUAU_ASSERT(!"Unknown opcode");
+        LUAU_UNREACHABLE();
+    }
+
+    L->ci->savedpc = pc;
 }
 
 int luau_precall(lua_State* L, StkId func, int nresults)
@@ -214,6 +280,8 @@ int luau_precall(lua_State* L, StkId func, int nresults)
     ci->savedpc = NULL;
     ci->flags = 0;
     ci->nresults = nresults;
+    if (FFlag::LuauClosureUsageCounter)
+        ccl->usage++;
 
     L->base = ci->base;
     // Note: L->top is assigned externally
@@ -254,6 +322,12 @@ int luau_precall(lua_State* L, StkId func, int nresults)
         CallInfo* ci = L->ci;
         CallInfo* cip = ci - 1;
 
+        if (FFlag::LuauClosureUsageCounter)
+        {
+            LUAU_ASSERT(ccl->usage > 0);
+            ccl->usage--;
+        }
+
         // copy return values into parent stack (but only up to nresults!), fill the rest with nil
         // TODO: it might be worthwhile to handle the case when nresults==b explicitly?
         StkId res = ci->func;
@@ -281,6 +355,12 @@ void luau_poscall(lua_State* L, StkId first)
     // ci is our callinfo, cip is our parent
     CallInfo* ci = L->ci;
     CallInfo* cip = ci - 1;
+
+    if (FFlag::LuauClosureUsageCounter)
+    {
+        LUAU_ASSERT(clvalue(ci->func)->usage > 0);
+        clvalue(ci->func)->usage--;
+    }
 
     // copy return values into parent stack (but only up to nresults!), fill the rest with nil
     // TODO: it might be worthwhile to handle the case when nresults==b explicitly?

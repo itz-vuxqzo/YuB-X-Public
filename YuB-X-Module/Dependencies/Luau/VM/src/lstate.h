@@ -4,6 +4,7 @@
 
 #include "lobject.h"
 #include "ltm.h"
+#include "ludata.h"
 
 // registry
 #define registry(L) (&L->global->registry)
@@ -19,8 +20,8 @@
 typedef struct stringtable
 {
     TString** hash; // 0x0
-    int size; // 0x8
-    uint32_t nuse; // 0xC
+    uint32_t nuse; // 0x8
+    int size; // 0xC
 } stringtable;
 // clang-format on
 
@@ -55,10 +56,10 @@ typedef struct stringtable
 // clang-format off
 typedef struct CallInfo
 {
-    StkId top; // 0x0
+    const Instruction* savedpc; // 0x0
     StkId func; // 0x8
-    StkId base; // 0x10
-    const Instruction* savedpc; // 0x18
+    StkId top; // 0x10
+    StkId base; // 0x18
     int nresults; // 0x20
     unsigned int flags; // 0x24
 } CallInfo;
@@ -67,6 +68,7 @@ typedef struct CallInfo
 #define LUA_CALLINFO_RETURN (1 << 0) // should the interpreter return after returning from this callinfo? first frame must have this set
 #define LUA_CALLINFO_HANDLE (1 << 1) // should the error thrown during execution get handled by continuation from this callinfo? func must be C
 #define LUA_CALLINFO_NATIVE (1 << 2) // should this function be executed using execution callback for native code
+#define LUA_CALLINFO_OPYIELD (1 << 3) // call frame has yielded on a non-call opcode and requires luaV_finishop
 
 #define curr_func(L) (clvalue(L->ci->func))
 #define ci_func(ci) (clvalue((ci)->func))
@@ -159,6 +161,17 @@ struct lua_ExecutionCallbacks
         Proto* proto,
         size_t* count
     ); // called to get the execution counter data and count {uint32_t, uint32_t, uint64_t}
+    Proto* (*inlinefunction)(lua_State* L, Closure* caller, Closure* target, uint32_t pc); // called when inlining threshold is reached
+};
+
+struct lua_UdataDirectAccessData
+{
+    TValue indextm;
+    TValue newindextm;
+    TValue namecalltm;
+    lua_UserdataDirectAccess index;
+    lua_UserdataDirectAccess newindex;
+    lua_UserdataDirectNamecall namecall;
 };
 
 /*
@@ -169,43 +182,46 @@ typedef struct global_State
 {
     size_t GCthreshold; // 0x0
     size_t totalbytes; // 0x8
-    lua_Alloc frealloc; // 0x10
-    void* ud; // 0x18
-    int gcgoal; // 0x20
-    int gcstepmul; // 0x24
-    int gcstepsize; // 0x28
-    stringtable strt; // 0x30
-    GCObject* gray; // 0x40
-    GCObject* weak; // 0x48
-    GCObject* grayagain; // 0x50
-    uint8_t currentwhite; // 0x58
-    uint8_t gcstate; // 0x59
-    UpVal uvhead; // 0x60
-    struct lua_State* mainthread; // 0x88
-    struct lua_Page* freegcopages[LUA_SIZECLASSES]; // 0x90
-    struct lua_Page* allgcopages; // 0x1D0
-    struct lua_Page* allpages; // 0x1D8
-    struct lua_Page* sweepgcopage; // 0x1E0
-    struct lua_Page* freepages[LUA_SIZECLASSES]; // 0x1E8
-    struct LuaTable* mt[LUA_T_COUNT]; // 0x328
-    TString* ttname[LUA_T_COUNT]; // 0x380
-    TString* tmname[TM_N]; // 0x3D8
-    TValue pseudotemp; // 0x480
-    TValue registry; // 0x490
-    int registryfree; // 0x4A0
-    lua_Callbacks cb; // 0x4A8
-    uint64_t rngstate; // 0x4F8
-    struct lua_jmpbuf* errorjmp; // 0x500
-    uint64_t ptrenckey[4]; // 0x508
-    lua_ExecutionCallbacks ecb; // 0x528
-    alignas(16) uint8_t ecbdata[LUA_EXECUTION_CALLBACK_STORAGE]; // 0x570
-    size_t memcatbytes[LUA_MEMORY_CATEGORIES]; // 0x770
-    void (*udatagc[LUA_UTAG_LIMIT])(lua_State*, void*); // 0xF70
-    LuaTable* udatamt[LUA_UTAG_LIMIT]; // 0x1370
-    TString* lightuserdataname[LUA_LUTAG_LIMIT]; // 0x1770
-    GCStats gcstats; // 0x1B70
+    GCObject* gray; // 0x10
+    GCObject* grayagain; // 0x18
+    GCObject* weak; // 0x20
+    stringtable strt; // 0x28
+    lua_Alloc frealloc; // 0x38
+    void* ud; // 0x40
+    int gcgoal; // 0x48
+    int gcstepsize; // 0x4C
+    int gcstepmul; // 0x50
+    uint8_t currentwhite; // 0x54
+    uint8_t gcstate; // 0x55
+    struct lua_State* mainthread; // 0x58
+    struct lua_Page* sweepgcopage; // 0x60
+    struct lua_Page* allgcopages; // 0x68
+    struct lua_Page* freegcopages[LUA_SIZECLASSES]; // 0x70
+    struct lua_Page* allpages; // 0x1B0
+    UpVal uvhead; // 0x1B8
+    struct lua_Page* freepages[LUA_SIZECLASSES]; // 0x1E0
+    TString* tmname[TM_N]; // 0x320
+    TString* ttname[LUA_T_COUNT]; // 0x3C8
+    struct LuaTable* mt[LUA_T_COUNT]; // 0x438
+    TValue pseudotemp; // 0x4A8
+    TValue registry; // 0x4B8
+    int registryfree; // 0x4C8
+    lua_Callbacks cb; // 0x4D0
+    uint64_t rngstate; // 0x520
+    uint64_t ptrenckey[4]; // 0x528
+    struct lua_jmpbuf* errorjmp; // 0x548
+    lua_ExecutionCallbacks ecb; // 0x550
+    alignas(16) uint8_t ecbdata[LUA_EXECUTION_CALLBACK_STORAGE]; // 0x5A0
+    lua_UdataDirectAccessData udatadirect[UTAG_INTERNAL_LIMIT]; // 0x7A0
+    size_t memcatbytes[LUA_MEMORY_CATEGORIES]; // 0x2C30
+    void (*udatagc[LUA_UTAG_LIMIT])(lua_State*, void*); // 0x3430
+    LuaTable* udatamt[LUA_UTAG_LIMIT]; //  0x3830
+    TString* lightuserdataname[LUA_LUTAG_LIMIT]; // 0x3C30
+    struct LuaTable* udatadirectfields[UTAG_INTERNAL_LIMIT]; // 0x4030
+    GCStats gcstats; // 0x4440
+    uint32_t lastprotoid; // 0x44F8
 #ifdef LUAI_GCMETRICS
-    GCMetrics gcmetrics; // 0x1C28
+    GCMetrics gcmetrics; // 0x4500
 #endif
 } global_State;
 // clang-format on
@@ -222,23 +238,23 @@ struct lua_State
     bool singlestep; // 0x5
     bool isactive; // 0x6
     TString* namecall; // 0x8
-    unsigned short nCcalls; // 0x10
-    unsigned short baseCcalls; // 0x12
-    int cachedslot; // 0x14
-    CallInfo* end_ci; // 0x18
-    CallInfo* base_ci; // 0x20
-    LuaTable* gt; // 0x28
-    LSTATE_STACKSIZE_ENC<int> stacksize; // 0x30
-    int size_ci; // 0x34
-    GCObject* gclist; // 0x38
-    RobloxExtraSpace* userdata; // 0x40
-    StkId top; // 0x48
-    StkId stack; // 0x50
-    global_State* global; // 0x58
-    CallInfo* ci; // 0x60
-    StkId stack_last; // 0x68
-    StkId base; // 0x70
-    UpVal* openupval; // 0x78
+    CallInfo* end_ci; // 0x10
+    CallInfo* base_ci; // 0x18
+    global_State* global; // 0x20
+    StkId stack_last; // 0x28
+    CallInfo* ci; // 0x30
+    StkId top; // 0x38
+    StkId base; // 0x40
+    StkId stack; // 0x48
+    GCObject* gclist; // 0x50
+    LuaTable* gt; // 0x58
+    UpVal* openupval; // 0x60
+    RobloxExtraSpace* userdata; // 0x68
+    LSTATE_STACKSIZE_ENC<int> stacksize; // 0x70
+    int size_ci; // 0x74
+    unsigned short nCcalls; // 0x78
+    unsigned short baseCcalls; // 0x7A
+    int cachedslot; // 0x7C
 };
 // clang-format on
 
@@ -256,6 +272,8 @@ union GCObject
     struct UpVal uv;
     struct lua_State th; // thread
     struct LuauBuffer buf;
+    struct LuauClass lclass;
+    struct LuauObject lobject;
 };
 
 // macros to convert a GCObject into a specific value
@@ -267,6 +285,8 @@ union GCObject
 #define gco2uv(o) check_exp((o)->gch.tt == LUA_TUPVAL, &((o)->uv))
 #define gco2th(o) check_exp((o)->gch.tt == LUA_TTHREAD, &((o)->th))
 #define gco2buf(o) check_exp((o)->gch.tt == LUA_TBUFFER, &((o)->buf))
+#define gco2class(o) check_exp((o)->gch.tt == LUA_TCLASS, &((o)->lclass))
+#define gco2object(o) check_exp((o)->gch.tt == LUA_TOBJECT, &((o)->lobject))
 
 // macro to convert any Lua object into a GCObject
 #define obj2gco(v) check_exp(iscollectable(v), cast_to(GCObject*, (v) + 0))

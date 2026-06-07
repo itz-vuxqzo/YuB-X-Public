@@ -3,12 +3,20 @@
 #include "Luau/Cst.h"
 #include "Luau/Common.h"
 
-LUAU_FASTFLAG(LuauCstStatDoWithStatsStart)
+LUAU_FASTFLAG(LuauCstExprGroup)
+LUAU_FASTFLAG(LuauCstTypeGroup)
 
 namespace Luau
 {
 
 int gCstRttiIndex = 0;
+
+CstExprGroup::CstExprGroup(Position closePosition)
+    : CstNode(CstClassIndex())
+    , closePosition(closePosition)
+{
+    LUAU_ASSERT(FFlag::LuauCstExprGroup);
+}
 
 CstExprConstantNumber::CstExprConstantNumber(const AstArray<char>& value)
     : CstNode(CstClassIndex())
@@ -25,7 +33,13 @@ CstExprConstantString::CstExprConstantString(AstArray<char> sourceString, QuoteS
     LUAU_ASSERT(blockDepth == 0 || quoteStyle == QuoteStyle::QuotedRaw);
 }
 
-CstExprCall::CstExprCall(std::optional<Position> openParens, std::optional<Position> closeParens, AstArray<Position> commaPositions)
+CstExprConstantInteger::CstExprConstantInteger(const AstArray<char>& value)
+    : CstNode(CstClassIndex())
+    , value(value)
+{
+}
+
+CstExprCall::CstExprCall(Position openParens, Position closeParens, AstArray<Position> commaPositions)
     : CstNode(CstClassIndex())
     , openParens(openParens)
     , closeParens(closeParens)
@@ -89,14 +103,6 @@ CstStatDo::CstStatDo(Position statsStartPosition, Position endPosition)
     , statsStartPosition(statsStartPosition)
     , endPosition(endPosition)
 {
-    LUAU_ASSERT(FFlag::LuauCstStatDoWithStatsStart);
-}
-
-CstStatDo_DEPRECATED::CstStatDo_DEPRECATED(Position endPosition)
-    : CstNode(CstClassIndex())
-    , endPosition(endPosition)
-{
-    LUAU_ASSERT(!FFlag::LuauCstStatDoWithStatsStart);
 }
 
 CstStatRepeat::CstStatRepeat(Position untilPosition)
@@ -123,12 +129,7 @@ CstStatLocal::CstStatLocal(
 {
 }
 
-CstStatFor::CstStatFor(
-    Position annotationColonPosition,
-    Position equalsPosition,
-    Position endCommaPosition,
-    std::optional<Position> stepCommaPosition
-)
+CstStatFor::CstStatFor(Position annotationColonPosition, Position equalsPosition, Position endCommaPosition, Position stepCommaPosition)
     : CstNode(CstClassIndex())
     , annotationColonPosition(annotationColonPosition)
     , equalsPosition(equalsPosition)
@@ -176,13 +177,13 @@ CstStatLocalFunction::CstStatLocalFunction(Position localKeywordPosition, Positi
 {
 }
 
-CstGenericType::CstGenericType(std::optional<Position> defaultEqualsPosition)
+CstGenericType::CstGenericType(Position defaultEqualsPosition)
     : CstNode(CstClassIndex())
     , defaultEqualsPosition(defaultEqualsPosition)
 {
 }
 
-CstGenericTypePack::CstGenericTypePack(Position ellipsisPosition, std::optional<Position> defaultEqualsPosition)
+CstGenericTypePack::CstGenericTypePack(Position ellipsisPosition, Position defaultEqualsPosition)
     : CstNode(CstClassIndex())
     , ellipsisPosition(ellipsisPosition)
     , defaultEqualsPosition(defaultEqualsPosition)
@@ -213,7 +214,7 @@ CstStatTypeFunction::CstStatTypeFunction(Position typeKeywordPosition, Position 
 }
 
 CstTypeReference::CstTypeReference(
-    std::optional<Position> prefixPointPosition,
+    Position prefixPointPosition,
     Position openParametersPosition,
     AstArray<Position> parametersCommaPositions,
     Position closeParametersPosition
@@ -238,7 +239,7 @@ CstTypeFunction::CstTypeFunction(
     AstArray<Position> genericsCommaPositions,
     Position closeGenericsPosition,
     Position openArgsPosition,
-    AstArray<std::optional<Position>> argumentNameColonPositions,
+    AstArray<Position> argumentNameColonPositions,
     AstArray<Position> argumentsCommaPositions,
     Position closeArgsPosition,
     Position returnArrowPosition
@@ -262,14 +263,14 @@ CstTypeTypeof::CstTypeTypeof(Position openPosition, Position closePosition)
 {
 }
 
-CstTypeUnion::CstTypeUnion(std::optional<Position> leadingPosition, AstArray<Position> separatorPositions)
+CstTypeUnion::CstTypeUnion(Position leadingPosition, AstArray<Position> separatorPositions)
     : CstNode(CstClassIndex())
     , leadingPosition(leadingPosition)
     , separatorPositions(separatorPositions)
 {
 }
 
-CstTypeIntersection::CstTypeIntersection(std::optional<Position> leadingPosition, AstArray<Position> separatorPositions)
+CstTypeIntersection::CstTypeIntersection(Position leadingPosition, AstArray<Position> separatorPositions)
     : CstNode(CstClassIndex())
     , leadingPosition(leadingPosition)
     , separatorPositions(separatorPositions)
@@ -285,18 +286,23 @@ CstTypeSingletonString::CstTypeSingletonString(AstArray<char> sourceString, CstE
     LUAU_ASSERT(quoteStyle != CstExprConstantString::QuotedInterp);
 }
 
+CstTypeGroup::CstTypeGroup(Position closePosition)
+    : CstNode(CstClassIndex())
+    , closePosition(closePosition)
+{
+    LUAU_ASSERT(FFlag::LuauCstTypeGroup);
+}
+
 CstTypePackExplicit::CstTypePackExplicit()
     : CstNode(CstClassIndex())
-    , hasParentheses(false)
-    , openParenthesesPosition(Position{0, 0})
-    , closeParenthesesPosition(Position{0, 0})
+    , openParenthesesPosition(Position::missing())
+    , closeParenthesesPosition(Position::missing())
     , commaPositions({})
 {
 }
 
 CstTypePackExplicit::CstTypePackExplicit(Position openParenthesesPosition, Position closeParenthesesPosition, AstArray<Position> commaPositions)
     : CstNode(CstClassIndex())
-    , hasParentheses(true)
     , openParenthesesPosition(openParenthesesPosition)
     , closeParenthesesPosition(closeParenthesesPosition)
     , commaPositions(commaPositions)

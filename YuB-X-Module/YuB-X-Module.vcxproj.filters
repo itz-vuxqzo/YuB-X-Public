@@ -18,6 +18,60 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Communication\Communication.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Exploit\TaskScheduler\TaskScheduler.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Exploit\Execution\Execution.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Exploit\Environment\Environment.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Exploit\Environment\Yielding\Yielding.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\cookies.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\auth.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\cprtypes.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\digest.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\error.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\multipart.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\parameters.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\payload.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\proxies.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\session.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\ssl_options.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\timeout.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\cpr\src\util.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="Dependencies\Luau\Ast\src\Allocator.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -39,13 +93,28 @@
     <ClCompile Include="Dependencies\Luau\Ast\src\Parser.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Ast\src\PrettyPrinter.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Bytecode\src\BytecodeBuilder.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Bytecode\src\BytecodeGraph.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Common\src\BytecodeWire.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Common\src\StringUtils.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\Common\src\TimeTrace.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="Dependencies\Luau\Compiler\src\BuiltinFolding.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\Luau\Compiler\src\Builtins.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\Luau\Compiler\src\BytecodeBuilder.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\Luau\Compiler\src\Compiler.cpp">
@@ -90,6 +159,12 @@
     <ClCompile Include="Dependencies\Luau\VM\src\lbuiltins.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Dependencies\Luau\VM\src\lclass.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\VM\src\lclasslib.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="Dependencies\Luau\VM\src\lcorolib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -112,6 +187,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\Luau\VM\src\linit.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\Luau\VM\src\lintlib.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Dependencies\Luau\VM\src\lmathlib.cpp">
@@ -168,212 +246,8 @@
     <ClCompile Include="Dependencies\Luau\VM\src\lvmutils.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Communication\Communication.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Exploit\TaskScheduler\TaskScheduler.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Exploit\Execution\Execution.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Exploit\Environment\Environment.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Exploit\Environment\Yielding\Yielding.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\cookies.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\auth.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\cprtypes.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\digest.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\error.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\multipart.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\parameters.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\payload.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\proxies.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\session.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\ssl_options.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\timeout.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\cpr\src\util.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\Luau\Ast\src\PrettyPrinter.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\Luau\Common\src\StringUtils.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Dependencies\Luau\Common\src\TimeTrace.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Dependencies\Luau\VM\src\lapi.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Allocator.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Ast.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Confusables.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Cst.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Lexer.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Location.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\ParseOptions.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Parser.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\ParseResult.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Bytecode.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\BytecodeUtils.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Common.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\DenseHash.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\ExperimentalFlags.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Variant.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\VecDeque.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\include\Luau\BytecodeBuilder.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\include\Luau\Compiler.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\include\luacode.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\BuiltinFolding.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\Builtins.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\ConstantFolding.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\CostModel.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\TableShape.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\Types.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Compiler\src\ValueTracking.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\include\lua.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\include\luaconf.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\include\lualib.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lbuffer.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lbuiltins.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lbytecode.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lcommon.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\ldebug.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\ldo.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lfunc.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lgc.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lmem.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lnumutils.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lobject.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lstate.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lstring.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\ltable.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\ltm.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\ludata.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Dependencies\Luau\VM\src\lvm.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Roblox\Encryptions.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -518,13 +392,82 @@
     <ClInclude Include="Exploit\Environment\Libraries\Closures.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\HashUtil.h">
+    <ClInclude Include="Exploit\Environment\Libraries\Http.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\include\Luau\BytecodeBuilder.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Allocator.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Ast.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Confusables.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Cst.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Lexer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Location.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\ParseOptions.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\Parser.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Ast\include\Luau\ParseResult.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Dependencies\Luau\Ast\include\Luau\PrettyPrinter.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Bytecode\include\Luau\BytecodeBuilder.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Bytecode\include\Luau\BytecodeGraph.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Bytecode\src\BytecodeGraphParser.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Bytecode\src\BytecodeGraphSerializer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Bytecode.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\BytecodeUtils.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\BytecodeWire.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Common.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\DenseHash.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\ExperimentalFlags.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\HashUtil.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\InsertionOrderedMap.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="Dependencies\Luau\Common\include\Luau\ScopedSeenSet.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\SmallVector.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Dependencies\Luau\Common\include\Luau\StringUtils.h">
@@ -533,13 +476,106 @@
     <ClInclude Include="Dependencies\Luau\Common\include\Luau\TimeTrace.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\Variant.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Common\include\Luau\VecDeque.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\include\Luau\Compiler.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\include\luacode.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\BuiltinFolding.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\Builtins.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\ConstantFolding.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\CostModel.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\TableShape.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\Compiler\src\Types.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
     <ClInclude Include="Dependencies\Luau\Compiler\src\Utils.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Dependencies\Luau\Common\include\Luau\SmallVector.h">
+    <ClInclude Include="Dependencies\Luau\Compiler\src\ValueTracking.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Exploit\Environment\Libraries\Http.hpp">
+    <ClInclude Include="Dependencies\Luau\VM\include\lua.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\include\luaconf.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\include\lualib.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lapi.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lbuffer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lbuiltins.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lbytecode.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lclass.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lcommon.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\ldebug.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\ldo.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lfunc.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lgc.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lmem.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lnumutils.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lobject.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lstate.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lstring.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\ltable.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\ltm.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\ludata.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\Luau\VM\src\lvm.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

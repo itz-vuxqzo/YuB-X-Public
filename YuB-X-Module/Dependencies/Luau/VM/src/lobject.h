@@ -18,7 +18,7 @@ typedef union GCObject GCObject;
 */
 // clang-format off
 #define CommonHeader \
-     uint8_t memcat; uint8_t tt; uint8_t marked // memcat = 0x0, tt = 0x1, marked = 0x2
+    uint8_t memcat; uint8_t tt; uint8_t marked // memcat = 0x0, tt = 0x1, marked = 0x2
 // clang-format on
 
 /*
@@ -38,6 +38,7 @@ typedef union
     void* p;
     double n;
     int b;
+    int64_t l;
     float v[2]; // v[0], v[1] live here; v[2] lives in TValue::extra
 } Value;
 
@@ -55,6 +56,7 @@ typedef struct lua_TValue
 // Macros to test type
 #define ttisnil(o) (ttype(o) == LUA_TNIL)
 #define ttisnumber(o) (ttype(o) == LUA_TNUMBER)
+#define ttisinteger(o) (ttype(o) == LUA_TINTEGER)
 #define ttisstring(o) (ttype(o) == LUA_TSTRING)
 #define ttistable(o) (ttype(o) == LUA_TTABLE)
 #define ttisfunction(o) (ttype(o) == LUA_TFUNCTION)
@@ -65,12 +67,15 @@ typedef struct lua_TValue
 #define ttislightuserdata(o) (ttype(o) == LUA_TLIGHTUSERDATA)
 #define ttisvector(o) (ttype(o) == LUA_TVECTOR)
 #define ttisupval(o) (ttype(o) == LUA_TUPVAL)
+#define ttisclass(o) (ttype(o) == LUA_TCLASS)
+#define ttisobject(o) (ttype(o) == LUA_TOBJECT)
 
 // Macros to access values
 #define ttype(o) ((o)->tt)
 #define gcvalue(o) check_exp(iscollectable(o), (o)->value.gc)
 #define pvalue(o) check_exp(ttislightuserdata(o), (o)->value.p)
 #define nvalue(o) check_exp(ttisnumber(o), (o)->value.n)
+#define lvalue(o) check_exp(ttisinteger(o), (o)->value.l)
 #define vvalue(o) check_exp(ttisvector(o), (o)->value.v)
 #define tsvalue(o) check_exp(ttisstring(o), &(o)->value.gc->ts)
 #define uvalue(o) check_exp(ttisuserdata(o), &(o)->value.gc->u)
@@ -80,6 +85,8 @@ typedef struct lua_TValue
 #define thvalue(o) check_exp(ttisthread(o), &(o)->value.gc->th)
 #define bufvalue(o) check_exp(ttisbuffer(o), &(o)->value.gc->buf)
 #define upvalue(o) check_exp(ttisupval(o), &(o)->value.gc->uv)
+#define classvalue(o) check_exp(ttisclass(o), &(o)->value.gc->lclass)
+#define objectvalue(o) check_exp(ttisobject(o), &(o)->value.gc->lobject)
 
 #define l_isfalse(o) (ttisnil(o) || (ttisboolean(o) && bvalue(o) == 0))
 
@@ -103,6 +110,13 @@ typedef struct lua_TValue
         TValue* i_o = (obj); \
         i_o->value.n = (x); \
         i_o->tt = LUA_TNUMBER; \
+    }
+
+#define setlvalue(obj, x) \
+    { \
+        TValue* i_o = (obj); \
+        i_o->value.l = (x); \
+        i_o->tt = LUA_TINTEGER; \
     }
 
 #if LUA_VECTOR_SIZE == 4
@@ -215,6 +229,23 @@ typedef struct lua_TValue
         checkliveness(L->global, o1); \
     }
 
+#define setclassvalue(L, obj, x) \
+    { \
+        TValue* i_o = (obj); \
+        i_o->value.gc = cast_to(GCObject*, (x)); \
+        i_o->tt = LUA_TCLASS; \
+        checkliveness(L->global, i_o); \
+    }
+
+
+#define setobjectvalue(L, obj, x) \
+    { \
+        TValue* i_o = (obj); \
+        i_o->value.gc = cast_to(GCObject*, (x)); \
+        i_o->tt = LUA_TOBJECT; \
+        checkliveness(L->global, i_o); \
+    }
+
 /*
 ** different types of sets, according to destination
 */
@@ -227,6 +258,8 @@ typedef struct lua_TValue
 #define setobj2t setobj
 // to new object (no barrier)
 #define setobj2n setobj
+// to class instance or static member (needs barrier)
+#define setobj2class setobj
 
 #define setttype(obj, tt) (ttype(obj) = (tt))
 
@@ -276,6 +309,26 @@ typedef struct LuauBuffer
     alignas(8) char data[1];
 } Buffer;
 
+enum FeedbackVectorSlotKind
+{
+    CALL_TARGET
+};
+
+struct FeedbackVectorSlot
+{
+    FeedbackVectorSlotKind kind;
+
+    union
+    {
+        struct
+        {
+            uint32_t pc;
+            uint32_t proto;
+            uint32_t hits;
+        } call_target;
+    };
+};
+
 /*
 ** Function Prototypes
 */
@@ -283,37 +336,40 @@ typedef struct LuauBuffer
 typedef struct Proto
 {
     CommonHeader;
-    uint8_t is_vararg; // 0x3
+    uint8_t maxstacksize; // 0x3
     uint8_t flags; // 0x4
-    uint8_t nups; // 0x5
-    uint8_t numparams; // 0x6
-    uint8_t maxstacksize; // 0x7
-    const Instruction* codeentry; // 0x8
-    PROTO_SOURCE_ENC<TString*> source; // 0x10
-    PROTO_UPVALUES_ENC<TString**> upvalues; // 0x18
-    void* execdata; // 0x20
-    uintptr_t exectarget; // 0x28
-    PROTO_DEBUGNAME_ENC<TString*> debugname; // 0x30
-    PROTO_USERDATA_ENC<void*> userdata; // 0x38
-    PROTO_LOCVARS_ENC<struct LocVar*> locvars; // 0x40
-    GCObject* gclist; // 0x48
-    PROTO_ABSLINEINFO_ENC<int*> abslineinfo; // 0x50
-    PROTO_LINEINFO_ENC<uint8_t*> lineinfo; // 0x58
-    TValue* k; // 0x60
-    Instruction* code; // 0x68
-    PROTO_DEBUGINSN_ENC<uint8_t*> debuginsn; // 0x70
-    struct Proto** p; // 0x78
+    uint8_t numparams; // 0x5
+    uint8_t nups; // 0x6
+    uint8_t is_vararg; // 0x7
+    PROTO_SOURCE_ENC<TString*> source; // 0x8
+    PROTO_DEBUGINSN_ENC<uint8_t*> debuginsn; // 0x10
+    PROTO_DEBUGNAME_ENC<TString*> debugname; // 0x18
+    GCObject* gclist; // 0x20
+    void* execdata; // 0x28
+    uintptr_t exectarget; // 0x30
+    const Instruction* codeentry; // 0x38
+    PROTO_USERDATA_ENC<void*> userdata; // 0x40
+    struct Proto** p; // 0x48
+    PROTO_LINEINFO_ENC<uint8_t*> lineinfo; // 0x50
+    PROTO_UPVALUES_ENC<TString**> upvalues; // 0x58
+    PROTO_LOCVARS_ENC<struct LocVar*> locvars; // 0x60
+    TValue* k; // 0x68
+    Instruction* code; // 0x70
+    PROTO_ABSLINEINFO_ENC<int*> abslineinfo; // 0x78
     PROTO_TYPEINFO_ENC<uint8_t*> typeinfo; // 0x80
-    int sizecode; // 0x88
+    int linedefined; // 0x88
     int sizelocvars; // 0x8C
-    int sizek; // 0x90
-    int sizeupvalues; // 0x94
-    int linegaplog2; // 0x98
-    int linedefined; // 0x9C
-    int sizetypeinfo; // 0xA0
-    int sizelineinfo; // 0xA4
-    int sizep; // 0xA8
-    int bytecodeid; // 0xAC
+    int bytecodeid; // 0x90
+    int sizetypeinfo; // 0x94
+    int sizelineinfo; // 0x98
+    int sizek; // 0x9C
+    int sizep; // 0xA0
+    int sizecode; // 0xA4
+    int sizeupvalues; // 0xA8
+    int linegaplog2; // 0xAC
+    FeedbackVectorSlot* feedbackvec; // 0xB0
+    uint32_t feedbackvecsize; // 0xB8
+    uint32_t funid; // 0xBC
 } Proto;
 // clang-format on
 
@@ -361,25 +417,26 @@ typedef struct UpVal
 typedef struct Closure
 {
     CommonHeader;
-    uint8_t isC; // 0x3
-    uint8_t preload; // 0x4
-    uint8_t stacksize; // 0x5
-    uint8_t nupvalues; // 0x6
-    GCObject* gclist; // 0x8
-    struct LuaTable* env; // 0x10
+    uint8_t stacksize; // 0x3
+    uint8_t nupvalues; // 0x4
+    uint8_t isC; // 0x5
+    uint8_t preload; // 0x6
+    uint64_t usage; // 0x8
+    GCObject* gclist; // 0x10
+    struct LuaTable* env; // 0x18
     union
     {
         struct
         {
-            lua_CFunction f; // 0x18
-            CLOSURE_DEBUGNAME_ENC<const char*> debugname; // 0x20
+            lua_CFunction f; // 0x20
             CLOSURE_CONT_ENC<lua_Continuation> cont; // 0x28
-            TValue upvals[1]; // 0x30
+            CLOSURE_DEBUGNAME_ENC<const char*> debugname; // 0x30
+            TValue upvals[1]; // 0x38
         } c;
         struct
         {
-            struct Proto* p; // 0x18
-            TValue uprefs[1]; // 0x20
+            struct Proto* p; // 0x20
+            TValue uprefs[1]; // 0x28
         } l;
     };
 } Closure;
@@ -432,22 +489,82 @@ typedef struct LuaTable
 {
     CommonHeader;
     uint8_t tmcache; // 0x3
-    uint8_t safeenv; // 0x4
-    uint8_t nodemask8; // 0x5
-    uint8_t readonly; // 0x6
-    uint8_t lsizenode; // 0x7
+    uint8_t lsizenode; // 0x4
+    uint8_t readonly; // 0x5
+    uint8_t nodemask8; // 0x6
+    uint8_t safeenv; // 0x7
     int sizearray; // 0x8
     union
     {
         int lastfree; // 0xC
         int aboundary; // 0xC
     };
-    struct LuaTable* metatable; // 0x10
+    LuaNode* node; // 0x10
     TValue* array; // 0x18
-    LuaNode* node; // 0x20
+    struct LuaTable* metatable; // 0x20
     GCObject* gclist; // 0x28
 } LuaTable;
 // clang-format on
+
+typedef struct LuauClass
+{
+    CommonHeader;
+
+    GCObject* gclist;
+
+    TString* name;
+
+    // Mapping from offset to static members (only methods for now).
+    TValue* staticmembers;
+
+    // Mapping from member name to offset.
+    LuaTable* memberstooffset;
+
+    // Mapping from offset to member name.
+    TString** offsettomember;
+
+    // Metatable for this *class object*. At time of writing this only contains
+    // __call, but we may add more metamethods to class objects in the future.
+    LuaTable* metatable;
+
+    // Metatable for instances of this class. NULL until the first metamethod
+    // is added via luaR_addclassmember.
+    LuaTable* instancemetatable;
+
+    // Number of instance members that we expect instances of this class object
+    // to have.
+    int numberofinstancemembers;
+
+    // Total number of members that we expect this class object to have between
+    // instance and static members.
+    //
+    // We store this number as an optimization. It's pretty rare that we need
+    // to reference the specific number of static members, but it's very common
+    // to reference the total number of members (for validating hot paths in
+    // the interpreter) and the number of instance members (branching on
+    // instance or static members, creating class instances).
+    int numberofallmembers;
+
+} LuauClass;
+
+typedef struct LuauObject
+{
+    CommonHeader;
+
+    GCObject* gclist;
+
+    // The class object that this value is an instance of.
+    LuauClass* lclass;
+
+    // The number of members that this instance contains. We need this in order
+    // to free ourselves if we got swept in the same GC cycle as our class
+    // pointer.
+    int numberofmembers;
+
+    // The fields of this instance.
+    TValue* members;
+
+} LuauObject;
 
 /*
 ** `module' operation for hashing (size is always a power of 2)
@@ -467,6 +584,7 @@ LUAI_FUNC int luaO_log2(unsigned int x);
 LUAI_FUNC int luaO_rawequalObj(const TValue* t1, const TValue* t2);
 LUAI_FUNC int luaO_rawequalKey(const TKey* t1, const TValue* t2);
 LUAI_FUNC int luaO_str2d(const char* s, double* result);
+LUAI_FUNC int luaO_str2l(const char* s, int64_t* result, int base = 10);
 LUAI_FUNC const char* luaO_pushvfstring(lua_State* L, const char* fmt, va_list argp);
 LUAI_FUNC const char* luaO_pushfstring(lua_State* L, const char* fmt, ...);
 LUAI_FUNC const char* luaO_chunkid(char* buf, size_t buflen, const char* source, size_t srclen);
